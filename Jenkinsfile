@@ -45,7 +45,11 @@ pipeline {
       steps {
         scrips {
           dir('bridge-lambda') {
-            sh("ls -al ${myDir}")
+            lsal = sh (
+                script: 'ls',
+                returnStdout: true
+            ).trim()
+            echo "folder info: ${lsal}"
           }
         }
       }
