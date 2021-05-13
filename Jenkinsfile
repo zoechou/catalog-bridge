@@ -45,8 +45,7 @@ pipeline {
       steps {
         scrips {
           dir('bridge-lambda') {
-            def ret = sh("ls -A1 ${myDir}")
-            print(ret)
+            sh("ls -A1 ${myDir}")
           }
         }
       }
