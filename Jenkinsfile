@@ -45,12 +45,13 @@ pipeline {
       steps {
         scrips {
           dir('bridge-lambda') {
-            sh("ls -A1 ${myDir}")
+            sh("ls -al ${myDir}")
           }
         }
       }
     }
 
+/*
 
     stage('Package') {
       when {
@@ -142,6 +143,7 @@ pipeline {
       }
     }
   }
+  */
 
 }
 
