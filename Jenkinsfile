@@ -32,12 +32,10 @@ pipeline {
           dir('bridge-lambda') {
             def s3_bucket = 'visenze-lambda-code-bucket-test'
             def aws_cred_id  = 'aws-staging'
-            def deploy_workspace = 'test-staging'
 
             if(env.BRANCH_NAME == 'production'){
               s3_bucket = 'online-sg-enterprise-lambda-code'
               aws_cred_id = 'aws-online-lambda-cd'
-              deploy_workspace = 'prod-commerce-connector'
             }
 
             def function_list = sh(script:"ls", returnStdout: true)
@@ -69,6 +67,12 @@ pipeline {
     stage('Lambda deploy') {
       steps {
         script {
+          def deploy_workspace = 'test-staging'
+
+          if(env.BRANCH_NAME == 'production'){
+            deploy_workspace = 'prod-commerce-connector'
+          }
+
           build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'feature/DOS-513')]
         }
       }
