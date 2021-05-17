@@ -18,57 +18,58 @@ pipeline {
   }
 
   stages {
-  stage('Checkout') {
-    steps {
-      // checkout the code from scm (github)
-      checkout scm
+    stage('Checkout') {
+      steps {
+        // checkout the code from scm (github)
+        checkout scm
+      }
     }
-  }
 
-  stage('Lambda archiving') {
-    steps {
-      script {
-        dir('bridge-lambda') {
-          def s3_bucket = 'visenze-lambda-code-bucket-test'
-          def aws_cred_id  = 'aws-staging'
-          def deploy_workspace = 'test-staging'
+    stage('Lambda archiving') {
+      steps {
+        script {
+          dir('bridge-lambda') {
+            def s3_bucket = 'visenze-lambda-code-bucket-test'
+            def aws_cred_id  = 'aws-staging'
+            def deploy_workspace = 'test-staging'
 
-          if(env.BRANCH_NAME == 'production'){
-            s3_bucket = 'online-sg-enterprise-lambda-code'
-            aws_cred_id = 'aws-online-lambda-cd'
-            deploy_workspace = 'prod-commerce-connector'
-          }
-
-          def function_list = sh(script:"ls", returnStdout: true)
-
-          for(lambda_function_name in function_list.split('\n')){
-            def code_path = "${lambda_function_name}/src"
-
-            try {
-              lambda.codeArchive(code_path,
-                              lambda_function_name,
-                              'v1',
-                              'Enterprise',
-                              'commerce',
-                              'commerce',
-                              s3_bucket,
-                              'us-west-2',
-                              aws_cred_id
-              )
+            if(env.BRANCH_NAME == 'production'){
+              s3_bucket = 'online-sg-enterprise-lambda-code'
+              aws_cred_id = 'aws-online-lambda-cd'
+              deploy_workspace = 'prod-commerce-connector'
             }
-            catch(all) {
-                print(all)
+
+            def function_list = sh(script:"ls", returnStdout: true)
+
+            for(lambda_function_name in function_list.split('\n')){
+              def code_path = "${lambda_function_name}/src"
+
+              try {
+                lambda.codeArchive(code_path,
+                                lambda_function_name,
+                                'v1',
+                                'Enterprise',
+                                'commerce',
+                                'commerce',
+                                s3_bucket,
+                                'us-west-2',
+                                aws_cred_id
+                )
+              }
+              catch(all) {
+                  print(all)
+              }
             }
           }
         }
       }
     }
-  }
 
-  stage('Lambda deploy') {
-    steps {
-      scripts {
-        build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'master')]
+    stage('Lambda deploy') {
+      steps {
+        scripts {
+          build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'master')]
+        }
       }
     }
   }
