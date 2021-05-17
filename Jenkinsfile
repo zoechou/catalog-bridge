@@ -1,4 +1,5 @@
-@Library('visenze-lib')_
+//@Library('visenze-lib')_
+library(identifier: "visenze-lib@feature/DOS-513", changelog: false)
 
 PROJECTS = [
   'gateway',
@@ -67,8 +68,8 @@ pipeline {
 
     stage('Lambda deploy') {
       steps {
-        scripts {
-          build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'master')]
+        script {
+          build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'feature/DOS-513')]
         }
       }
     }
