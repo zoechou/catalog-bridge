@@ -30,15 +30,19 @@ pipeline {
       steps {
         script {
           dir('bridge-lambda') {
+            // TODO: Need to remove for release code
             def s3_bucket = 'visenze-lambda-code-bucket-test'
             def aws_cred_id  = 'aws-staging'
+            def aws_region = 'us-west-2'
 
-            if(env.BRANCH_NAME == 'production'){
+            if(env.BRANCH_NAME in ['production', 'develop']){
               s3_bucket = 'online-sg-enterprise-lambda-code'
               aws_cred_id = 'aws-online-lambda-cd'
+              aws_region = 'ap-southeast-1'
             }
 
             def function_list = sh(script:"ls", returnStdout: true)
+            def function_version = sh(script: "cat VERSION | head -1", returnStdout: true)
 
             for(lambda_function_name in function_list.split('\n')){
               def code_path = "${lambda_function_name}/src"
@@ -46,12 +50,12 @@ pipeline {
               try {
                 lambda.codeArchive(code_path,
                                 lambda_function_name,
-                                'v1',
+                                function_version,
                                 'Enterprise',
                                 'commerce',
                                 'commerce',
                                 s3_bucket,
-                                'us-west-2',
+                                aws_region,
                                 aws_cred_id
                 )
               }
@@ -67,9 +71,10 @@ pipeline {
     stage('Lambda deploy') {
       steps {
         script {
+          // TODO: Need to replace for release code, create workspace first for develop env
           def deploy_workspace = 'test-staging'
 
-          if(env.BRANCH_NAME == 'production'){
+          if(env.BRANCH_NAME in ['production', 'develop']){
             deploy_workspace = 'prod-commerce-connector'
           }
 
