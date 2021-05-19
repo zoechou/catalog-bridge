@@ -41,7 +41,7 @@ pipeline {
               aws_region = 'ap-southeast-1'
             }
 
-            def function_list = sh(script:"ls", returnStdout: true)
+            def function_list = sh(script:"ls | grep -v VERSION", returnStdout: true)
             def function_version = sh(script: "cat VERSION | head -1", returnStdout: true)
 
             for(lambda_function_name in function_list.split('\n')){
@@ -60,7 +60,7 @@ pipeline {
                 )
               }
               catch(all) {
-                  print(all)
+                  error(all)
               }
             }
           }
