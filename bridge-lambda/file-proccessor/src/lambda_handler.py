@@ -1,12 +1,15 @@
 def handler(event, context):
     print(event)
 
-    statusCode = 401
-    body = "Authorization failed"
+    try:
+        statusCode = 401
+        body = "Authorization failed"
 
-    if (event.get('queryStringParameters', {}).get('verified', False)):
-        statusCode = 200
-        body = "Hello file-processor v2!"
+        if(event.get('queryStringParameters').get('verified', False)):
+            statusCode = 200
+            body = "Hello file-processor v2!"
+    except Exception as e:
+        print(e)
 
     response = {
         "statusCode": statusCode,
