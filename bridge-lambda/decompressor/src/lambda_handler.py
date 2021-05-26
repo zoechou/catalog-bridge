@@ -1,2 +1,19 @@
 def handler(event, context):
-    return "Hello decompressor  v2!"
+    print(event)
+
+    statusCode = 200
+    body = "Hello decompressor  v2!"
+
+    if (!event.queryStringParameters.verified):
+        statusCode = 401
+        body = "Authorization failed"
+
+
+    response = {
+        "statusCode": statusCode,
+        "headers": {
+            "my_header": "my_value"
+        },
+        "body": body
+    }
+    return response
