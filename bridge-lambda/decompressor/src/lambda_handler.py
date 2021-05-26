@@ -4,7 +4,7 @@ def handler(event, context):
     statusCode = 401
     body = "Authorization failed"
 
-    if (event.get('queryStringParameters').get('verified', False)):
+    if (event.get('queryStringParameters', {}).get('verified', False)):
         statusCode = 200
         body = "Hello decompressor  v2!"
 
