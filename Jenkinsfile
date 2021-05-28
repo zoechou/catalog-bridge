@@ -74,8 +74,12 @@ pipeline {
           // TODO: Need to replace for release code, create workspace first for develop env
           def deploy_workspace = 'test-staging'
 
+
           if(env.BRANCH_NAME in ['production', 'develop']){
             deploy_workspace = 'prod-commerce-connector'
+          }
+          else if(env.BRANCH_NAME in ['develop']){
+            deploy_workspace = 'develop-commerce-connector'
           }
 
           build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'CLOUD_FORM_BRANCH', value: 'feature/DOS-513'), string(name: 'AGENT_LABEL', value: 'pod-od'), string(name: 'VISENZE_LIB_BRANCH', value: 'feature/DOS-513'), booleanParam(name: 'AUTO_DEPLOY', value: true)]
