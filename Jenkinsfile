@@ -75,7 +75,7 @@ pipeline {
           def deploy_workspace = 'test-staging'
 
 
-          if(env.BRANCH_NAME in ['production', 'develop']){
+          if(env.BRANCH_NAME in ['production']){
             deploy_workspace = 'prod-commerce-connector'
           }
           else if(env.BRANCH_NAME in ['develop']){
