@@ -81,7 +81,11 @@ pipeline {
             deploy_workspace = 'develop-commerce-connector'
           }
 
-          //build job: 'sre-update-infrastructure', parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'), string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"), string(name: 'AGENT_LABEL', value: 'pod-od'), booleanParam(name: 'AUTO_DEPLOY', value: true)]
+          build(job: 'sre-update-infrastructure', 
+                parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'),
+                             string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"),
+                             string(name: 'AGENT_LABEL', value: 'pod-od'),
+                             booleanParam(name: 'AUTO_DEPLOY', value: true)])
         }
       }
     }
