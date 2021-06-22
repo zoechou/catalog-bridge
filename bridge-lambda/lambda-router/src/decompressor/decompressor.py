@@ -1,5 +1,3 @@
-import decompressor
-
 def handler(event, context):
     '''
         please refer to aws website for event record and required response fields
@@ -14,7 +12,7 @@ def handler(event, context):
 
         if(event.get('queryStringParameters').get('verified', False)):
             statusCode = 200
-            decompressor.handler(event, context)
+            body = "Hello decompressor!"
     except Exception as e:
         print(e)
 
