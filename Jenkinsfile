@@ -48,8 +48,8 @@ pipeline {
 
               try {
                 lambda.codeArchive(code_path,
-                                lambda_function_name,
-                                function_version,
+                                lambda_function_name.trim(),
+                                function_version.trim(),
                                 'Enterprise',
                                 'commerce',
                                 'commerce',
@@ -84,6 +84,7 @@ pipeline {
           build(job: 'sre-update-infrastructure', 
                 parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'),
                              string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"),
+                             string(name: 'CLOUD_FORM_BRANCH', value: "feature/DOS-513"),
                              string(name: 'AGENT_LABEL', value: 'pod-od'),
                              booleanParam(name: 'AUTO_DEPLOY', value: true)])
         }
