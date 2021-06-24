@@ -59,6 +59,7 @@ pipeline {
                 )
               }
               catch(all) {
+                  print(all)
                   error(all)
               }
             }
