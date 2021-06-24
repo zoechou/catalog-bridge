@@ -6,6 +6,7 @@ PROJECTS = [
   'service',
   'worker'
 ]
+def NEED_DEPLOY = false
 
 pipeline {
   // choose a suitable agent to build
@@ -57,10 +58,11 @@ pipeline {
                                 aws_region,
                                 aws_cred_id
                 )
+                NEED_DEPLOY = true
               }
               catch(all) {
                   print(all)
-                  error(all)
+                  NEED_DEPLOY = false
               }
             }
           }
@@ -69,6 +71,11 @@ pipeline {
     }
 
     stage('Lambda deploy') {
+      when {
+        expression {
+          return NEED_DEPLOY
+        }
+      }
       steps {
         script {
           // TODO: Need to replace for release code, create workspace first for develop env
