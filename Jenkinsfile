@@ -189,18 +189,23 @@ def codeArchive(codePath, funcName, version, team, project, component, s3Bucket,
   def environment = env.BRANCH_NAME == "production" ? "production" : env.BRANCH_NAME == "develop" ? "develop" : "staging"
 
   dir(codePath) {
-    sh("touch requirements.txt")
-    def zipDependency = "$funcName-dependency-$version" + ".zip"
+    // source code
     def zipFileName = "$funcName-$version" + ".zip"
     sh("rm -f $zipFileName")
-    sh("rm -f $zipDependency")
     zip(dir: '.', exclude: 'requirements.txt', glob: '', overwrite: true, zipFile: "$zipFileName")
+
+    sh("touch requirements.txt")
+    def zipDependency = "$funcName-dependency-$version" + ".zip"
+    sh("rm -f $zipDependency")
     install_lambda_dependency(zipDependency)
 
     def hash = sh(script: "cat $zipFileName | openssl dgst -sha256 -binary | openssl base64", returnStdout: true).trim()
+    def dependencyHash = sh(script: "cat $zipDependency | openssl dgst -sha256 -binary | openssl base64", returnStdout: true).trim()
+
     def s3_key = "$project/$environment/$funcName/$zipFileName"
     def s3_dependency_key = "$project/$environment/$funcName/$zipDependency"
-    def val = ['s3_key': "$s3_key", 'source_code_hash': hash, 's3_dependency_key': "$s3_dependency_key"]
+
+    def val = ['s3_key': "$s3_key", 'source_code_hash': hash, 's3_dependency_key': "$s3_dependency_key", "s3_dependency_hash": "$dependencyHash"]
     def parameterName = "/cloudform/aws-lambda/$project/$environment/$funcName"
     def parameterValue = groovy.json.JsonOutput.toJson(val)
     withCredentials([[$class           : 'AmazonWebServicesCredentialsBinding',
