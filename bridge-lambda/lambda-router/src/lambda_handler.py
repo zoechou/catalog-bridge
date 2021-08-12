@@ -1,4 +1,5 @@
-import decompressor
+from decompressor import decompressor
+import requests
 
 def handler(event, context):
     '''
@@ -7,6 +8,8 @@ def handler(event, context):
         https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
     '''
     print(event)
+    res = requests.get('https://api.github.com')
+    print(res)
 
     try:
         statusCode = 401
@@ -14,7 +17,7 @@ def handler(event, context):
 
         if(event.get('queryStringParameters').get('verified', False)):
             statusCode = 200
-            decompressor.handler(event, context)
+            return decompressor.handler(event, context)
     except Exception as e:
         print(e)
 
