@@ -35,7 +35,7 @@ pipeline {
             def aws_cred_id  = 'aws-staging'
             def aws_region = 'us-west-2'
 
-            if(env.BRANCH_NAME in ['production', 'develop']){
+            if(env.BRANCH_NAME in ['production']){
               s3_bucket = 'online-sg-enterprise-lambda-code'
               aws_cred_id = 'aws-online-lambda-cd'
               aws_region = 'ap-southeast-1'
@@ -48,7 +48,7 @@ pipeline {
               def code_path = "${lambda_function_name}/src"
 
               try {
-                lambda.codeArchive(code_path,
+                codeArchive(code_path,
                                 lambda_function_name.trim(),
                                 function_version.trim(),
                                 'Enterprise',
@@ -58,7 +58,7 @@ pipeline {
                                 aws_region,
                                 aws_cred_id
                 )
-                NEED_DEPLOY = true
+                NEED_DEPLOY = false
               }
               catch(all) {
                   print(all)
@@ -178,3 +178,59 @@ def dockerPush(proj, localTag, tags) {
     }
   }
 }
+
+
+def codeArchive(codePath, funcName, version, team, project, component, s3Bucket, region, awsCredID) {
+
+  def environment = env.BRANCH_NAME == "production" ? "production" : env.BRANCH_NAME == "develop" ? "develop" : "staging"
+
+  dir(codePath) {
+    sh("touch requirements.txt")
+    def zipDependency = "$funcName-dependency-$version" + ".zip"
+    def zipFileName = "$funcName-$version" + ".zip"
+    sh("rm -f $zipFileName")
+    sh("rm -f $zipDependency")
+    zip(dir: '.', exclude: 'requirements.txt', glob: '', overwrite: true, zipFile: "$zipFileName")
+    sh ("zip -r $zipDependency requirements.txt")
+
+    def hash = sh(script: "cat $zipFileName | openssl dgst -sha256 -binary | openssl base64", returnStdout: true).trim()
+    def s3_key = "$project/$environment/$funcName/$zipFileName"
+    def s3_dependency_key = "$project/$environment/$funcName/$zipDependency"
+    def val = ['s3_key': "$s3_key", 'source_code_hash': hash, 's3_dependency_key': "$s3_dependency_key"]
+    def parameterName = "/cloudform/aws-lambda/$project/$environment/$funcName"
+    def parameterValue = groovy.json.JsonOutput.toJson(val)
+    withCredentials([[$class           : 'AmazonWebServicesCredentialsBinding',
+                      credentialsId    : awsCredID,
+                      accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                      secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+      def s3Object = "s3://$s3Bucket/$s3_key"
+      def s3DependencyObject = "s3://$s3Bucket/$s3_dependency_key"
+      def ret = sh(script: "aws s3 ls $s3Object",
+                   returnStatus: true)
+      if (ret == 0) {
+        sh("rm -f $zipFileName")
+        error("The object $s3Object exists, please bump the version")
+      }
+      sh("aws s3 cp $zipFileName $s3Object")
+      sh("aws s3 cp $zipDependency $s3DependencyObject")
+      def putCmd = """aws ssm put-parameter --name '$parameterName' --value '$parameterValue' \
+                        --type String --region $region"""
+      ret = sh(script: "aws ssm get-parameter --name '$parameterName' --region $region",
+          returnStatus: true)
+      if (ret == 0) {
+        putCmd += " --overwrite"
+      } else {
+        putCmd += """ --tags Key=Name,Value=$funcName      \
+                      Key=Component,Value=$component       \
+                      Key=V2_Component,Value=$component    \
+                      Key=V2_Team,Value=$team              \
+                      Key=Project,Value=$project           \
+                      Key=V2_Project,Value=$project"""
+      }
+      sh(putCmd)
+      sh("rm -f $zipFileName")
+      sh("rm -f $zipDependency")
+    }
+  }
+}
+
