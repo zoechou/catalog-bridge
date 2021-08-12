@@ -179,6 +179,10 @@ def dockerPush(proj, localTag, tags) {
   }
 }
 
+def install_lambda_dependency(zipfile){
+    sh "pip install -r requirements.txt --target python"
+    sh ("zip -r $zipfile python")
+}
 
 def codeArchive(codePath, funcName, version, team, project, component, s3Bucket, region, awsCredID) {
 
@@ -191,7 +195,7 @@ def codeArchive(codePath, funcName, version, team, project, component, s3Bucket,
     sh("rm -f $zipFileName")
     sh("rm -f $zipDependency")
     zip(dir: '.', exclude: 'requirements.txt', glob: '', overwrite: true, zipFile: "$zipFileName")
-    sh ("zip -r $zipDependency requirements.txt")
+    install_lambda_dependency(zipDependency)
 
     def hash = sh(script: "cat $zipFileName | openssl dgst -sha256 -binary | openssl base64", returnStdout: true).trim()
     def s3_key = "$project/$environment/$funcName/$zipFileName"
