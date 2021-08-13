@@ -85,9 +85,6 @@ pipeline {
           if(env.BRANCH_NAME in ['production']){
             deploy_workspace = 'prod-commerce-connector'
           }
-          else if(env.BRANCH_NAME in ['develop']){
-            deploy_workspace = 'develop-commerce-connector'
-          }
 
           build(job: 'sre-update-infrastructure', 
                 parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'),
