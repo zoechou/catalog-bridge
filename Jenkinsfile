@@ -58,7 +58,7 @@ pipeline {
                                 aws_region,
                                 aws_cred_id
                 )
-                NEED_DEPLOY = false
+                NEED_DEPLOY = true
               }
               catch(all) {
                   print(all)
@@ -92,7 +92,7 @@ pipeline {
           build(job: 'sre-update-infrastructure', 
                 parameters: [string(name: 'INFRASTRUCTURE', value: 'aws-lambda'),
                              string(name: 'INFRA_WORKSPACE', value: "${deploy_workspace}"),
-                             string(name: 'CLOUD_FORM_BRANCH', value: "feature/DOS-513"),
+                             string(name: 'CLOUD_FORM_BRANCH', value: "feature/ES-2841"),
                              string(name: 'AGENT_LABEL', value: 'pod-od'),
                              booleanParam(name: 'AUTO_DEPLOY', value: true)])
         }
@@ -192,7 +192,7 @@ def codeArchive(codePath, funcName, version, team, project, component, s3Bucket,
     // source code
     def zipFileName = "$funcName-$version" + ".zip"
     sh("rm -f $zipFileName")
-    zip(dir: '.', exclude: 'requirements.txt', glob: '', overwrite: true, zipFile: "$zipFileName")
+    zip(dir: '.', exclude: 'python/***,requirements.txt', glob: '', overwrite: true, zipFile: "$zipFileName")
 
     sh("touch requirements.txt")
     def zipDependency = "$funcName-dependency-$version" + ".zip"
